@@ -18,6 +18,12 @@ const baseContainerOpt = {
     }
   }
 };
+const PanelsType = {
+  API: 1,
+  ENDPOINT: 2,
+  SERVER: 3,
+  BODY: 4,
+};
 
 // -------------------
 // -- RQ BOX ---------
@@ -41,7 +47,7 @@ class RQBaseBox {
       content: this.title,
       top: -1,
       left: 1,
-      style: { fg: COLOR_TEXT, bg: '#000' },
+      style: { fg: COLOR_TEXT },
     });
     this.box.append(title);
     this.createBoxContent();
@@ -50,15 +56,31 @@ class RQBaseBox {
 
 // -----------------------------
 // -- RQ LIST TEMPLATE ---------
-class RQBaseListApi extends RQBaseBox {
+class RQBaseList extends RQBaseBox {
   constructor(mainApp, title, DBKey, options) {
     super(mainApp, title, options);
     this.DBKey = DBKey;
     const dataList = this.mainApp.getDBItem(this.DBKey) || [];
     this.dataList = [...dataList];
-    this.button = this.input = this.list = this.inputLabel = null;
+    this.question = this.button = this.input = this.list = this.inputLabel = null;
+    this.buttonLabel = 'button'; 
   }
-  setNewAPI(val) { console.log(val, 'set new item'); }
+  makeQuestion() {
+    this.question = blessed.Question({
+      keys: true,
+      vi: true,
+    });
+    this.box.append(this.question);
+  }
+  // setNewItem(val) { console.log(val, 'set new item'); }
+  setNewItem(val) {
+    if(val) {
+      this.list.addItem(val);
+      this.dataList.push(val);
+      this.mainApp.setDBItem(this.DBKey, this.dataList);
+      this.mainApp.render();
+    }
+  }
   addInput() {
     if(!this.input) {
       this.inputLabel = blessed.Text({
@@ -78,9 +100,10 @@ class RQBaseListApi extends RQBaseBox {
         inputOnFocus: true,
       });
       this.input.on('submit', (val) => {
-        this.setNewAPI(val);
+        this.setNewItem(val);
         this.removeInput();
       });
+      this.input.on('cancel', () => this.removeInput());
       this.box.insertAfter(this.input, this.button);
       this.input.focus();
       this.list.top = 2;
@@ -94,33 +117,26 @@ class RQBaseListApi extends RQBaseBox {
     this.list.top = 1;
     this.mainApp.render();
   }
-}
-
-// -----------------------
-// -- RQ API BOX ---------
-class RQApiBox extends RQBaseListApi {
-  constructor(mainApp, options) {
-    super(mainApp, 'APIs', 'API', options);
-  }
-  setNewAPI(val) {
-    if(val) {
-      this.list.addItem(val);
-      this.dataList.push(val);
-      this.mainApp.setDBItem(this.DBKey, this.dataList);
-      this.mainApp.render();
-    }
+  selectItem(index) { console.log('item index selected', index); }
+  deleteItem(index) { console.log('item index delete', index); }
+  deleteDone(index) {
+    this.list.removeItem(index);
+    this.dataList.splice(index, 1);
+    this.mainApp.setDBItem(this.DBKey, [...this.dataList]);
+    this.mainApp.render();
   }
   createBoxContent() {
     this.button = blessed.Button({
-      content: 'new API',
+      content: this.buttonLabel,
       top: 0,
       height: 1,
+      width: '50%',
+      left: '25%',
       align: 'center',
       style: { fg: COLOR_TEXT, bg: '#000', focus: { fg: '#000', bg: COLOR_TEXT } },
     });
     this.button.key(['enter'], this.addInput.bind(this));
     this.box.append(this.button);
-    this.button.focus();
 
     this.list = blessed.List({
       top: 1,
@@ -131,52 +147,47 @@ class RQApiBox extends RQBaseListApi {
       style: { 
         item: { fg: 'white', bg: 'black' }, 
         selected: { fg: '#000', bg: '#4af626' }, 
-        border: { fg: '#4af626' },
+        border: { fg: '#666' },
       },
       invertSelected: true,
+      pick: (a, b) => this.mainApp.screen.debug('pick', a, b),
     });
-    this.list.on('select', (_item, index) => {
-      console.log(index, 'selected');
-    });
+    this.list.on('select', (_item, index) => this.selectItem(index));
+    // this.list.on('select item', () => console.log('list action')); 
+    this.list.on('focus', () => {
+      if(!this.dataList.length) {
+        this.mainApp.screen.focusNext();
+      }
+    })
+    this.list.key(['d'], () => this.deleteItem(this.list.selected));
     this.box.append(this.list);
+
+    this.makeQuestion();
+  }
+}
+
+// -----------------------
+// -- RQ API BOX ---------
+class RQApiBox extends RQBaseList {
+  constructor(mainApp, options) {
+    super(mainApp, `APIs(${PanelsType.API})`, 'API', options);
+    this.buttonLabel = 'add API';
+  }
+  deleteItem(index) {
+    this.question.ask(`Delete API:${this.dataList[index]} with all endpoints?`, (_, answer) => {
+      if(answer) {
+        this.deleteDone(index); 
+      }
+    });
   }
 }
 
 // -----------------------
 // -- RQ ENDPOINTS BOX ---
-class RQEndpointsBox extends RQBaseListApi {
+class RQEndpointsBox extends RQBaseList {
   constructor(mainApp, options) {
-    super(mainApp, 'Endpoints', 'ENDPOINTS', options);
-  }
-  createBoxContent() {
-    this.button = blessed.Button({
-      content: 'new endpoint',
-      top: 0,
-      height: 1,
-      align: 'center',
-      style: { fg: COLOR_TEXT, bg: '#000', focus: { fg: '#000', bg: COLOR_TEXT } },
-    });
-    this.button.key(['enter'], this.addInput.bind(this));
-    this.box.append(this.button);
-
-    this.list = blessed.List({
-      top: 1,
-      keys: true,
-      vi: true,
-      items: [...this.dataList],
-      border: 'line',
-      style: { 
-        item: { fg: 'white', bg: 'black' }, 
-        selected: { fg: '#000', bg: '#4af626' }, 
-        border: { fg: '#4af626' },
-      },
-      invertSelected: true,
-    });
-    // this.list.focus();
-    this.list.on('select', (_item, index) => {
-      console.log(index, 'selected');
-    });
-    this.box.append(this.list);
+    super(mainApp, `Endpoints(${PanelsType.ENDPOINT})`, 'ENDPOINTS', options);
+    this.buttonLabel = 'add endpoint';
   }
 }
 
@@ -184,7 +195,7 @@ class RQEndpointsBox extends RQBaseListApi {
 // -- RQ SERVER BOX ---
 class RQServerBox extends RQBaseBox {
   constructor(mainApp, options) {
-    super(mainApp, 'Server', options);
+    super(mainApp, `Server(${PanelsType.SERVER})`, options);
   }
 }
 
@@ -192,7 +203,7 @@ class RQServerBox extends RQBaseBox {
 // -- RQ BODY BOX ---
 class RQBodyBox extends RQBaseBox {
   constructor(mainApp, options) {
-    super(mainApp, 'Request body', options);
+    super(mainApp, `Request body(${PanelsType.BODY})`, options);
   }
 }
 
@@ -211,19 +222,18 @@ class RQMan {
     this.db = new JSONdb('./db.json', { jsonSpaces: 2 });
 
     this.makeContainters();
+    this.makeFooter();
     this.render();
     this.link();
   }
 
   getDBItem(key) {
     const val = this.db.get(key);
-    // console.log(val, key, 'jepka');
     return val ?? null;
   }
 
   setDBItem(key, val) {
     if(key && val) {
-      // console.log('NEWITEM', val, key);
       this.db.set(key, val);
     }
   }
@@ -231,28 +241,44 @@ class RQMan {
   makeContainters() {
     this.containers.apis = new RQApiBox(this, {
       ...baseContainerOpt,
-    }).getBox();
+    });
     this.containers.endpoints = new RQEndpointsBox(this, {
       ...baseContainerOpt,
       top: '50%'
-    }).getBox();
+    });
     this.containers.serverSetings = new RQServerBox(this, {
       ...baseContainerOpt,
       left: '40%',
       width: '60%',
-      height: '30%'
-    }).getBox();
+      height: '40%'
+    });
     this.containers.body = new RQBodyBox(this, {
       ...baseContainerOpt,
-      top: '30%',
+      top: '40%',
       left: '40%',
       width: '60%',
-      height: '70%'
-    }).getBox();
+      height: '60%'
+    });
 
     for(const box of Object.values(this.containers)) {
-      this.screen.append(box);
+      this.screen.append(box.getBox());
     }
+    this.containers.apis.button.focus();
+    // while(this.screen.focusPop()) {
+    //   console.log('focus pop');
+    // }
+    // this.screen.focusPush(this.containers.apis.button);
+    // this.screen.focusPush(this.containers.apis.list);
+  }
+
+  makeFooter() {
+    this.footer = blessed.Text({
+      content: 'Baked by @Chleba [d] - delete item, [tab] - change focus, [esc] - back/exit',
+      top: '98%',
+      left: 1,
+      style: { fg: '#666', underline: true },
+    });
+    this.screen.append(this.footer);
   }
 
   render() {
@@ -275,140 +301,4 @@ class RQMan {
 }
 
 new RQMan();
-
-
-
-
-
-
-
-
-// // Create a screen object.
-// const screen = blessed.screen({
-//   smartCSR: true
-// });
-
-// screen.title = 'my window title';
-
-// // Create a box perfectly centered horizontally and vertically.
-// var box = blessed.box({
-//   top: 'center',
-//   left: 'center',
-//   width: '50%',
-//   height: '50%',
-//   content: 'Hello {bold}world{/bold}!',
-//   tags: true,
-//   border: {
-//     type: 'line'
-//   },
-//   style: {
-//     fg: 'white',
-//     bg: 'magenta',
-//     border: {
-//       fg: '#f0f0f0'
-//     },
-//     hover: {
-//       bg: 'green'
-//     }
-//   }
-// });
-
-// // Append our box to the screen.
-// screen.append(box);
-
-// // Add a png icon to the box
-// var icon = blessed.image({
-//   parent: box,
-//   top: 0,
-//   left: 0,
-//   type: 'overlay',
-//   width: 'shrink',
-//   height: 'shrink',
-//   file: __dirname + '/my-program-icon.png',
-//   search: false
-// });
-
-// // If our box is clicked, change the content.
-// box.on('click', function(data) {
-//   box.setContent('{center}Some different {red-fg}content{/red-fg}.{/center}');
-//   screen.render();
-// });
-
-// // If box is focused, handle `enter`/`return` and give us some more content.
-// box.key('enter', function(ch, key) {
-//   box.setContent('{right}Even different {black-fg}content{/black-fg}.{/right}\n');
-//   box.setLine(1, 'bar');
-//   box.insertLine(1, 'foo');
-//   screen.render();
-// });
-
-// // Quit on Escape, q, or Control-C.
-// screen.key(['escape', 'q', 'C-c'], function(ch, key) {
-//   return process.exit(0);
-// });
-
-// // Focus our element.
-// box.focus();
-
-// // Render the screen.
-// screen.render();
-
-
-// import { terminal } from 'terminal-kit';
-
-// class RQMan {
-//   constructor() {
-//     this.renderTable();
-//     this._link();
-//     // this.createDocument();
-//   }
-
-//   _link() {
-//     // terminal.on('key', (e:any) => this.keyInput(e));
-//     terminal.on('key', (e:any) => this.keyInput(e));
-//     terminal.on('terminal', (e:any) => this.terminalInput(e));
-//   }
-
-//   terminalInput(e:any) {
-//     console.log(e);
-//   }
-
-//   keyInput(e:string) {
-//     console.log(e);
-//     if (e === 'CTRL_C') {
-//       process.exit(0);
-//     }
-//   }
-
-//   createDocument() {
-//     // this.doc = terminal.docu
-//   }
-
-//   renderTable() {
-//     // terminal.red('Hello word!');
-
-//     terminal.fullscreen(true);
-//     terminal.grabInput(true);
-//     terminal.table( [
-//         [ 'header #1' , 'header #2' , 'header #3' ] ,
-//         [ 'row #1' , 'a much bigger cell, a much bigger cell, a much bigger cell... ' , 'cell' ] ,
-//         [ 'row #2' , 'cell' , 'a medium cell' ] ,
-//         [ 'row #3' , 'cell' , 'cell' ] ,
-//         [ 'row #4' , 'cell\nwith\nnew\nlines' , '^YThis ^Mis ^Ca ^Rcell ^Gwith ^Bmarkup^R^+!' ]
-//       ] , {
-//         hasBorder: true,
-//         contentHasMarkup: true,
-//         borderChars: 'dotted',
-//         borderAttr: { color: 'blue' } ,
-//         textAttr: { bgColor: 'default' } ,
-//         firstCellTextAttr: { bgColor: 'blue' } ,
-//         firstRowTextAttr: { bgColor: 'yellow' } ,
-//         firstColumnTextAttr: { bgColor: 'red' } ,
-//         fit: true   // Activate all expand/shrink + wordWrap
-//       }
-//     ) ;
-//   }
-// }
-
-// new RQMan(); 
 
