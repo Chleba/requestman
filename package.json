@@ -1,0 +1,22 @@
+{
+  "name": "rqman",
+  "version": "1.0.0",
+  "description": "Simple Postman-like in terminal",
+  "main": "dist/main.js",
+  "scripts": {
+    "start": "tsc && node dist/main.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Chleba<chlebik@gmail.com>",
+  "license": "ISC",
+  "dependencies": {
+    "@types/terminal-kit": "^2.5.1",
+    "reblessed": "^0.2.1",
+    "simple-json-db": "^2.0.0",
+    "terminal-kit": "^3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.13.0",
+    "typescript": "^4.9.5"
+  }
+}
