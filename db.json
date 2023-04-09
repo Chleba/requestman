@@ -1,6 +1,22 @@
 {
   "API": [
     "aaa",
-    "bbb"
-  ]
+    "ccc",
+    "ddd"
+  ],
+  "ENDPOINTS": {
+    "aaa": [
+      "/hovno",
+      "/ahoj",
+      "/hoj",
+      "/api/v1.0/ip"
+    ],
+    "ccc": [
+      "/a1",
+      "/b2",
+      "/c3",
+      "/d4",
+      "/e5"
+    ]
+  }
 }
