@@ -2,6 +2,9 @@ const blessed = require('reblessed');
 const JSONdb = require('simple-json-db');
 
 const COLOR_TEXT = '#4af626';
+const COLOR_BLACK = '#000';
+const COLOR_GRAY1 = '#333';
+const COLOR_GRAY2 = '#666';
 const baseContainerOpt = {
   top: 0,
   left: 0,
@@ -11,7 +14,7 @@ const baseContainerOpt = {
   border: { type: 'line' },
   style: {
     fg: 'white',
-    border: { fg: '#333' },
+    border: { fg: COLOR_GRAY1 },
   }
 };
 const PanelsType = {
@@ -150,7 +153,7 @@ class RQBaseList extends RQBaseBox {
       width: '50%',
       left: '25%',
       align: 'center',
-      style: { fg: COLOR_TEXT, bg: '#000', focus: { fg: '#000', bg: COLOR_TEXT } },
+      style: { fg: COLOR_TEXT, bg: COLOR_BLACK, focus: { fg: COLOR_BLACK, bg: COLOR_TEXT } },
     });
     this.button.key(['enter'], this.addInput.bind(this));
     this.box.append(this.button);
@@ -163,11 +166,11 @@ class RQBaseList extends RQBaseBox {
       border: 'line',
       style: { 
         item: { fg: 'white', bg: 'black' }, 
-        selected: { fg: '#000', bg: '#4af626' }, 
-        border: { fg: '#666' },
+        selected: { fg: '#999', bg: COLOR_GRAY2 }, 
+        border: { fg: COLOR_GRAY2 },
+        focus: { selected: { bg: COLOR_TEXT, fg: COLOR_BLACK } }
       },
       invertSelected: true,
-      pick: (a, b) => this.mainApp.screen.debug('pick', a, b),
     });
     this.list.on('select', (_item, index) => this.selectItem(index));
     this.list.on('select item', () => {
@@ -176,7 +179,7 @@ class RQBaseList extends RQBaseBox {
     this.list.on('focus', () => {
       if(!this.dataList.length) {
         this.mainApp.screen.focusNext();
-        // this.list.style.border.fg = '#333';
+        // this.list.style.border.fg = COLOR_GRAY1;
       }
     })
     this.list.key(['d'], () => this.deleteItem(this.list.selected));
@@ -184,10 +187,11 @@ class RQBaseList extends RQBaseBox {
 
     this.counter = blessed.Text({
       bottom: 0,
-      right: 0,
-      content: `[${this.list.selected+1}/${this.dataList.length}]`,
-      style: { fg: '#666' },
+      right: 1,
+      content: '[0/0]',
+      style: { fg: COLOR_GRAY2 },
     });
+    this.refreshCounter();
     this.box.append(this.counter);
 
     this.makeQuestion();
@@ -201,11 +205,11 @@ class RQApiBox extends RQBaseList {
     super(mainApp, `APIs(${PanelsType.API})`, 'API', options);
     this.buttonLabel = 'add API';
   }
-  createBoxContent() {
-    super.createBoxContent();
-    // this.button.on('focus', () => this.focusBox());
-    // this.list.on('focus', () => this.focusBox());
-  }
+  // createBoxContent() {
+  //   super.createBoxContent();
+  //   // this.button.on('focus', () => this.focusBox());
+  //   // this.list.on('focus', () => this.focusBox());
+  // }
   selectItem(index) {
     this.mainApp.setActiveAPI(this.dataList[index]);
     this.mainApp.containers.endpoints.button.focus();
@@ -248,10 +252,9 @@ class RQEndpointsBox extends RQBaseList {
       if(api in data) {
         this.dataList = [...data[api]];
         this.list.setItems(this.makeListItems(this.dataList));
-        // this.counter.setContent(`[${this.list.selected+1}/${this.dataList.length}]`);
       }
     }
-    this.counter.setContent(`[${this.list.selected+1}/${this.dataList.length}]`);
+    this.refreshCounter();
   }
   deleteDone(index) {
     this.list.removeItem(index);
@@ -283,7 +286,6 @@ class RQEndpointsBox extends RQBaseList {
       } else {
         newData[api] = [val];
       }
-      // this.list.addItem(val);
       this.dataList.push(val);
       this.list.clearItems();
       this.list.setItems(this.makeListItems(this.dataList));
@@ -294,8 +296,8 @@ class RQEndpointsBox extends RQBaseList {
   redirectFocus() {
     if(!this.mainApp.activeAPI){
       this.mainApp.screen.focusPush(this.mainApp.containers.apis.button);
-      this.list.style.border.fg = '#666';
-      // this.box.border.fg = '#333';
+      this.list.style.border.fg = COLOR_GRAY2;
+      // this.box.border.fg = COLOR_GRAY1;
     } else {
       // this.box.border.fg = COLOR_TEXT;
     }
@@ -314,50 +316,103 @@ class RQServerBox extends RQBaseList {
   constructor(mainApp, options) {
     super(mainApp, `Server(${PanelsType.SERVER})`, 'HTTP_CONF', options);
   }
-  createBoxContent() {
-    const rItems = {};
-    RequestTypes.map((r, i) => {
-      rItems[r] = (i) => console.log(i, 'listbar digga');
-    })
-    this.requests = blessed.Listbar({
+  makeMenuBox(label) {
+    return blessed.Box({
+      label: label,
+      border: 'line',
       top: 0,
-      items: rItems,
-      keys: true,
-      vi: true,
-      height: 1,
-      // border: 'line',
-      // width: '100%',
-      lockKeys: true,
-      grabKeys: true,
-      style: {
-        fg: COLOR_TEXT,
-        bg: '#000',
-        item: { bg: '#000', focus: { bg: 'blue' } },
-        selected: { bg: COLOR_TEXT, fg: '#000' },
-      }
-      // padding: 0,
+      style: { border: { fg: COLOR_GRAY2 } },
     });
-    this.box.append(this.requests);
-    // this.requests.focus();
-    // const typeChilds = [];
-    // RequestTypes.map(item => {
-    //   typeChilds.push(blessed.RadioButton({
-    //     content: item,
-    //     style: { fg: COLOR_TEXT, bg: '#000' },
-    //   }));
-    // });
+  }
+  showBase() {
+    this.menuContent.children = [];
+    const b = this.makeMenuBox('BASE');
+    this.menuContent.append(b);
+  }
+  showParams() {
+    this.menuContent.children = [];
+    const b = this.makeMenuBox('PARAMS');
+    this.menuContent.append(b);
+  }
+  showHeaders() {
+    this.menuContent.children = [];
+    const b = this.makeMenuBox('HEADERS');
+    this.menuContent.append(b);
+  }
+  showBody() {
+    this.menuContent.children = [];
+    const b = this.makeMenuBox('BODY');
+    this.menuContent.append(b);
+  }
+  createBoxContent() {
+    const infoText = blessed.Text({ 
+      content: '[s]:send', 
+      bottom: -1,
+      right: 0,
+      style: { fg: COLOR_GRAY2 } 
+    });
+    this.box.append(infoText);
 
-    // this.requests = blessed.RadioSet({
+    const mItems = {
+      BASE: () => this.showBase(),
+      PARAMS: () => this.showParams(),
+      HEADERS: () => this.showHeaders(),
+      BODY: () => this.showBody(),
+    };
+    // RequestTypes.map((r, i) => {
+    //   mItems[r] = {
+    //     keys: [''],
+    //     callback: () => console.log(i, r, 'listbar digga'),
+    //   }
+    // })
+    this.menu = blessed.Listbar({
+      top: 0,
+      items: mItems,
+      height: 1,
+      autoCommandKeys: false,
+      style: {
+        // fg: COLOR_TEXT,
+        bg: COLOR_BLACK,
+        item: { bg: COLOR_GRAY1 },
+        selected: { bg: COLOR_GRAY2, fg: '#999' },
+        focus: { bg: COLOR_BLACK, item: { bg: COLOR_BLACK }, selected: { bg: COLOR_TEXT, fg: COLOR_BLACK } },
+        // focus: { bg: COLOR_GRAY2, item: { bg: COLOR_GRAY2 }, selected: { bg: COLOR_GRAY1, fg: '#999' } },
+      }
+    });
+    this.menu.key(['left', 'right', 'enter'], (_, key) => {
+      if(key.full === 'left') { this.menu.moveLeft(); }
+      if(key.full === 'right') { this.menu.moveRight(); }
+      if(key.full === 'enter') { this.menu.items[this.menu.selected]['_'].cmd.callback(); }
+      this.mainApp.render();
+    });
+    this.box.append(this.menu);
+    this.menuContent = blessed.Box({ top: 1 });
+    this.box.append(this.menuContent);
+    // -- first select
+    mItems.BASE();
+
+    // const rItems = {};
+    // RequestTypes.map((r, i) => {
+    //   rItems[r] = {
+    //     keys: [''],
+    //     callback: () => console.log(i, r, 'listbar digga'),
+    //   }
+    // })
+    // this.requests = blessed.Listbar({
+    //   top: 0,
+    //   items: rItems,
     //   keys: true,
     //   vi: true,
-    //   children: typeChilds,
-    // }); 
-    // this.box.append(this.requests);
-    // this.list = blessed.Listbar({
-    //    
+    //   height: 1,
+    //   autoCommandKeys: false,
+    //   style: {
+    //     fg: COLOR_TEXT,
+    //     bg: COLOR_BLACK,
+    //     item: { bg: COLOR_BLACK, focus: { bg: 'blue' } },
+    //     selected: { bg: COLOR_TEXT, fg: COLOR_BLACK },
+    //   }
     // });
-    // const t = blessed.Text({top:1, content:'hjovno'});
-    // this.box.append(t);
+    // this.box.append(this.requests);
   }
 }
 
@@ -415,30 +470,38 @@ class RQMan {
       ...baseContainerOpt,
       left: '40%',
       width: '60%',
-      height: '40%'
+      height: '50%'
     });
     this.containers.body = new RQBodyBox(this, {
       ...baseContainerOpt,
-      top: '40%',
+      top: '50%',
       left: '40%',
       width: '60%',
-      height: '60%'
+      height: '50%'
     });
 
     for(const box of Object.values(this.containers)) {
       this.screen.append(box.getBox());
     }
+    // -- first focus
     // this.containers.apis.button.focus();
-    this.containers.serverSetings.requests.focus();
+    this.containers.serverSetings.menu.focus();
   }
   makeFooter() {
-    this.footer = blessed.Text({
-      content: 'Baked by @Chleba [d]:delete, [tab,<,>]:switch focus, [esc]:back/exit',
+    const footerAuthor = blessed.Text({
+      content: 'Baked by @Chleba',
+      right: 1,
       bottom: 0,
-      left: 2,
-      style: { fg: '#666', },
+      style: { fg: COLOR_GRAY2, },
     });
-    this.screen.append(this.footer);
+    this.screen.append(footerAuthor);
+    const footerInfo = blessed.Text({
+      content: '[d]:delete, [tab]:focus, [esc]:back, [q]:exit',
+      bottom: 0,
+      left: 1,
+      style: { fg: COLOR_GRAY2, },
+    });
+    this.screen.append(footerInfo);
   }
   render() {
     this.screen.render();
@@ -450,15 +513,21 @@ class RQMan {
         ? this.screen.focusPrevious()
         : this.screen.focusNext();
     });
-    // this.screen.key(['<', '>'], (_a, key) => {
-    //   if(key.full === '<') { this.screen.focusPrevious(); }
-    //   if(key.full === '>') { this.screen.focusNext(); }
-    // });
-    // this.screen.key(Object.values(PanelsType), (_, key) => {
-    //   console.log(key, 'panel switch');
-    // })
+    this.screen.key(Object.values(PanelsType), (_, key) => {
+      switch(key.full * 1) {
+        case PanelsType.API:
+          this.containers.apis.button.focus();
+          break;
+        case PanelsType.ENDPOINT:
+          if(this.activeAPI) {
+            this.containers.endpoints.button.focus();
+          }
+          break;
+        default: break;
+      }
+    })
     this.screen.on('element focus', (cur, old) => {
-      if (old.border) old.style.border.fg = '#666';
+      if (old.border) old.style.border.fg = COLOR_GRAY2;
       if (cur.border) cur.style.border.fg = 'green';
       this.screen.render();
     });
