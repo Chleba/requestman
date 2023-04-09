@@ -16,7 +16,27 @@
       "/b2",
       "/c3",
       "/d4",
-      "/e5"
+      "/e5",
+      "hovnosrack/1/a1"
+    ],
+    "ddd": [
+      "asdads",
+      "asda",
+      "qwe",
+      "vzcxv",
+      "krutofil"
     ]
+  },
+  "SERVERCONF": {
+    "aaa": {
+      "/hovno": {
+        "url": "ahoj",
+        "method": 2
+      },
+      "/ahoj": {
+        "url": "localhost",
+        "method": 0
+      }
+    }
   }
 }
