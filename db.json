@@ -1,31 +1,17 @@
 {
   "API": [
-    "aaa",
-    "ccc",
-    "ddd"
+    "test",
+    "ahoj"
   ],
   "ENDPOINTS": {
-    "aaa": [
-      "/hovno",
-      "/ahoj",
-      "/hoj",
-      "/api/v1.0/ip",
-      "/"
+    "test": [
+      "/todos/1",
+      "/todos"
     ],
-    "ccc": [
-      "/a1",
-      "/b2",
-      "/c3",
-      "/d4",
-      "/e5",
-      "hovnosrack/1/a1"
-    ],
-    "ddd": [
-      "asdads",
-      "asda",
-      "qwe",
-      "vzcxv",
-      "krutofil"
+    "ahoj": [
+      "aaa",
+      "bbb",
+      "ccc"
     ]
   },
   "SERVERCONF": {
@@ -40,6 +26,26 @@
       },
       "/": {
         "url": "https://seznam.cz",
+        "method": 0,
+        "headers": {
+          "Accept": "*/*",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Connection": "keep-alive"
+        }
+      }
+    },
+    "test": {
+      "/todos/1": {
+        "url": "https://jsonplaceholder.typicode.com",
+        "method": 0,
+        "headers": {
+          "Accept": "*/*",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Connection": "keep-alive"
+        }
+      },
+      "/todos": {
+        "url": "https://jsonplaceholder.typicode.com",
         "method": 0,
         "headers": {
           "Accept": "*/*",

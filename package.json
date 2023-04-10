@@ -1,6 +1,6 @@
 {
   "name": "rqman",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Simple Postman-like in terminal",
   "main": "main.js",
   "scripts": {
@@ -9,7 +9,13 @@
   },
   "author": "chleba<chlebik@gmail.com>",
   "license": "MIT",
-  "keywords": ["terminal", "gui", "request", "api", "postman-line"],
+  "keywords": [
+    "terminal",
+    "gui",
+    "request",
+    "api",
+    "postman-line"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/Chleba/requestman"
@@ -18,6 +24,7 @@
     "axios": "^1.3.5",
     "node-clipboardy": "^1.0.3",
     "reblessed": "^0.2.1",
+    "rqman": "^0.1.1",
     "simple-json-db": "^2.0.0"
   },
   "bin": {

@@ -226,6 +226,18 @@ class RQApiBox extends RQBaseList {
     }
     super.deleteDone(index);
   }
+  refreshList() {
+    this.list.setItems(this.makeListItems(this.dataList));
+  }
+  makeListItems(data) {
+    const endpointsData = this.mainApp.getDBItem(this.mainApp.containers.endpoints.DBKey);
+    const newData = [];
+    data.map((item, index)=> {
+      const eNum = item in endpointsData ? endpointsData[item].length : 0;
+      newData.push(` ${index + 1}: (${eNum})${item}`);
+    });
+    return newData;
+  }
   deleteItem(index) {
     this.question.ask(`Delete API:${this.dataList[index]} with all endpoints?`, (_, answer) => {
       if(answer) {
@@ -291,6 +303,7 @@ class RQEndpointsBox extends RQBaseList {
       this.dataList.push(val);
       this.list.clearItems();
       this.list.setItems(this.makeListItems(this.dataList));
+      this.mainApp.containers.apis.refreshList();
       this.mainApp.setDBItem(this.DBKey, newData);
       this.mainApp.render();
     }
@@ -547,6 +560,14 @@ class RQBodyBox extends RQBaseBox {
       keys: true,
       vi: true,
     });
+    this.responseText.on('focus', () => { 
+      this.bodyBox.style.border.fg = COLOR_TEXT; 
+      this.mainApp.render();
+    });
+    this.responseText.on('blur', () => { 
+      this.bodyBox.style.border.fg = COLOR_GRAY2; 
+      this.mainApp.render();
+    });
     this.bodyBox.append(this.responseText);
     this.setResponseState(response.status || response.code);
     this.responseText.focus();
@@ -660,14 +681,14 @@ class RQMan {
       ...baseContainerOpt,
       left: '40%',
       width: '60%',
-      height: '50%'
+      height: '40%'
     });
     this.containers.body = new RQBodyBox(this, {
       ...baseContainerOpt,
-      top: '50%',
+      top: '40%',
       left: '40%',
       width: '60%',
-      height: '50%'
+      height: '60%'
     });
 
     for(const box of Object.values(this.containers)) {
