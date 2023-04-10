@@ -1,3 +1,5 @@
+const axios = require('axios');
+const { response } = require('express');
 const blessed = require('reblessed');
 const JSONdb = require('simple-json-db');
 
@@ -314,7 +316,8 @@ class RQServerBox extends RQBaseList {
     const data = this.mainApp.getDBItem(this.DBKey);
     this.dataList = {
       url: '',
-      method: '?'
+      method: -1,
+      headers: defaultHeaders,
     };
     if(data) {
       if(api in data) {
@@ -342,6 +345,7 @@ class RQServerBox extends RQBaseList {
   setContentData() {
     this.base.urlInput.setContent(this.dataList.url);
     this.base.methodButton.setContent(RequestTypes[this.dataList.method] || '?');
+    // this.base.methodList.selectTab(this.dataList.method);
     this.mainApp.setServerConf(this.dataList);
     this.mainApp.render();
   }
@@ -429,6 +433,7 @@ class RQServerBox extends RQBaseList {
         if(i !== 'box') { this.base.box.append(this.base[i]); }
       }
       this.base.methodList.toggle();
+      this.mainApp.render();
       this.base.methodList.on('blur', () => this.base.methodList.hide());
       this.base.methodList.key(['left', 'right', 'enter'], (_, key) => {
         if(key.full === 'left') { this.base.methodList.moveLeft(); }
@@ -440,6 +445,7 @@ class RQServerBox extends RQBaseList {
       });
       this.base.methodButton.key(['enter'], () => {
         this.base.methodList.toggle();
+        // if(this.dataList.method) { this.base.methodList.selectTab(this.dataList.method); }
         this.base.methodList.focus();
         this.mainApp.render();
       });
@@ -521,6 +527,37 @@ class RQBodyBox extends RQBaseBox {
     this.url.setContent(conf.url);
     this.endpoint.setContent(this.mainApp.activeEndpoint);
   }
+  setResponseState(status) {
+    let color = 'red';
+    if(!isNaN(status)) {
+      if(status < 400) { color = 'green'; }
+    }
+    this.status.style.fg = color;
+    this.status.setContent(`[${status}]`);
+    this.mainApp.render();
+  }
+  addResponse(response, conf) {
+    if(this.responseText){ 
+      // this.bodyBox.remove(this.responseLabel);
+      this.bodyBox.remove(this.responseText); 
+    }
+    // this.responseLabel = blessed.Text({
+    //   top: 0,
+    //   content: `${RequestTypes[conf.method]}:${conf.url}${this.mainApp.activeEndpoint}`,
+    //   style: { fg: 'blue' },
+    // });
+    // this.bodyBox.append(this.responseLabel);
+    this.responseText = blessed.ScrollableText({ 
+      top: 1, 
+      content: JSON.stringify(response.data),
+      scrollable: true,
+      scrollbar: { inverse: true },
+      keys: true,
+      vi: true,
+    });
+    this.bodyBox.append(this.responseText);
+    this.setResponseState(response.status || response.code);
+  }
   createBoxContent() {
     this.method = blessed.Text({
       content: '?',
@@ -547,6 +584,25 @@ class RQBodyBox extends RQBaseBox {
       style: { bg: COLOR_GRAY2, fg: COLOR_TEXT },
     });
     this.box.append(this.endpoint);
+    this.bodyBox = blessed.Box({
+      top: 1,
+      label: 'Body',
+      border: 'line',
+      style: { border: { fg: COLOR_GRAY2 } },
+      // scrollable: true,
+      keys: true,
+      vi: true,
+      // alwaysScroll: true,
+      // scrollbar: { inverse: true },
+    });
+    this.box.append(this.bodyBox);
+    this.status = blessed.Text({
+      top: -1,
+      right: 0,
+      style: { fg: 'red' },
+      content: '[-]',
+    });
+    this.box.append(this.status);
   }
 }
 
@@ -565,6 +621,7 @@ class RQMan {
     this.db = new JSONdb('./db.json', { jsonSpaces: 2 });
     this.activeAPI = null;
     this.activeEndpoint = null;
+    this.activeConf = null;
 
     this.makeContainters();
     this.makeFooter();
@@ -581,6 +638,7 @@ class RQMan {
     this.containers.serverSetings.setActiveEndpoint(this.activeAPI, this.activeEndpoint);
   }
   setServerConf(conf) {
+    this.activeConf = conf;
     this.containers.body.setServerConf(conf);
   }
   getDBItem(key) {
@@ -618,8 +676,8 @@ class RQMan {
       this.screen.append(box.getBox());
     }
     // -- first focus
-    // this.containers.apis.button.focus();
-    this.containers.serverSetings.menu.focus();
+    this.containers.apis.button.focus();
+    // this.containers.serverSetings.menu.focus();
   }
   makeFooter() {
     const footerAuthor = blessed.Text({
@@ -640,6 +698,20 @@ class RQMan {
   render() {
     this.screen.render();
   }
+  sendRequest() {
+    const { method, url, headers } = this.activeConf;
+    axios({
+      method: RequestTypes[method],
+      baseURL: `${url}`,
+      url: `${this.activeEndpoint}`,
+      headers: headers,
+    }).then(response => {
+        this.containers.body.addResponse(response, {...this.activeConf});
+    // }).catch(e => this.containers.body.setResponseState(e.code)); 
+      }).catch(e => {
+        this.containers.body.addResponse(e, {...this.activeConf});
+      }); 
+  }
   link() {
     this.screen.key(['q', 'C-c'], () => process.exit(0));
     this.screen.key(['tab', 'S-tab'], (_ch, key) => {
@@ -647,6 +719,7 @@ class RQMan {
         ? this.screen.focusPrevious()
         : this.screen.focusNext();
     });
+    this.screen.key(['s'], () => this.sendRequest());
     this.screen.key(Object.values(PanelsType), (_, key) => {
       switch(key.full * 1) {
         case PanelsType.API:
@@ -657,6 +730,9 @@ class RQMan {
           break;
         case PanelsType.SERVER:
           this.containers.serverSetings.menu.focus();
+          break;
+        case PanelsType.BODY:
+          this.containers.body.bodyBox.focus();
           break;
         default: break;
       }

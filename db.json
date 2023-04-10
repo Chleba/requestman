@@ -9,7 +9,8 @@
       "/hovno",
       "/ahoj",
       "/hoj",
-      "/api/v1.0/ip"
+      "/api/v1.0/ip",
+      "/"
     ],
     "ccc": [
       "/a1",
@@ -30,12 +31,21 @@
   "SERVERCONF": {
     "aaa": {
       "/hovno": {
-        "url": "ahoj",
-        "method": 2
+        "url": "asdasd",
+        "method": 0
       },
       "/ahoj": {
         "url": "localhost",
         "method": 0
+      },
+      "/": {
+        "url": "https://seznam.cz",
+        "method": 0,
+        "headers": {
+          "Accept": "*/*",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Connection": "keep-alive"
+        }
       }
     }
   }
