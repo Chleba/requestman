@@ -1,5 +1,6 @@
+// import { clipboard } from 'clipboardy';
+const clipboard = require('node-clipboardy');
 const axios = require('axios');
-const { response } = require('express');
 const blessed = require('reblessed');
 const JSONdb = require('simple-json-db');
 
@@ -720,6 +721,11 @@ class RQMan {
         : this.screen.focusNext();
     });
     this.screen.key(['s'], () => this.sendRequest());
+    this.screen.key(['c'], () => {
+      if(this.containers.body.responseText) {
+        clipboard.writeSync(this.containers.body.responseText.content);
+      }
+    });
     this.screen.key(Object.values(PanelsType), (_, key) => {
       switch(key.full * 1) {
         case PanelsType.API:
