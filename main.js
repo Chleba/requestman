@@ -536,19 +536,9 @@ class RQBodyBox extends RQBaseBox {
     this.status.setContent(`[${status}]`);
     this.mainApp.render();
   }
-  addResponse(response, conf) {
-    if(this.responseText){ 
-      // this.bodyBox.remove(this.responseLabel);
-      this.bodyBox.remove(this.responseText); 
-    }
-    // this.responseLabel = blessed.Text({
-    //   top: 0,
-    //   content: `${RequestTypes[conf.method]}:${conf.url}${this.mainApp.activeEndpoint}`,
-    //   style: { fg: 'blue' },
-    // });
-    // this.bodyBox.append(this.responseLabel);
+  addResponse(response, _conf) {
+    if(this.responseText){ this.bodyBox.remove(this.responseText); }
     this.responseText = blessed.ScrollableText({ 
-      top: 1, 
       content: JSON.stringify(response.data),
       scrollable: true,
       scrollbar: { inverse: true },
@@ -557,6 +547,7 @@ class RQBodyBox extends RQBaseBox {
     });
     this.bodyBox.append(this.responseText);
     this.setResponseState(response.status || response.code);
+    this.responseText.focus();
   }
   createBoxContent() {
     this.method = blessed.Text({
@@ -589,11 +580,8 @@ class RQBodyBox extends RQBaseBox {
       label: 'Body',
       border: 'line',
       style: { border: { fg: COLOR_GRAY2 } },
-      // scrollable: true,
       keys: true,
       vi: true,
-      // alwaysScroll: true,
-      // scrollbar: { inverse: true },
     });
     this.box.append(this.bodyBox);
     this.status = blessed.Text({
@@ -603,6 +591,13 @@ class RQBodyBox extends RQBaseBox {
       content: '[-]',
     });
     this.box.append(this.status);
+    const copyText = blessed.Text({
+      bottom: 0,
+      right: 0,
+      content: '[c]:copy',
+      style: { fg: COLOR_GRAY2 },
+    });
+    this.box.append(copyText);
   }
 }
 
@@ -622,6 +617,7 @@ class RQMan {
     this.activeAPI = null;
     this.activeEndpoint = null;
     this.activeConf = null;
+    this.requestStatus = false;
 
     this.makeContainters();
     this.makeFooter();
@@ -699,6 +695,9 @@ class RQMan {
     this.screen.render();
   }
   sendRequest() {
+    if(this.requestStatus) { return; }
+    this.requestStatus = true;
+    this.containers.body.setResponseState('Loading..');
     const { method, url, headers } = this.activeConf;
     axios({
       method: RequestTypes[method],
@@ -706,9 +705,10 @@ class RQMan {
       url: `${this.activeEndpoint}`,
       headers: headers,
     }).then(response => {
+        this.requestStatus = false;
         this.containers.body.addResponse(response, {...this.activeConf});
-    // }).catch(e => this.containers.body.setResponseState(e.code)); 
       }).catch(e => {
+        this.requestStatus = false;
         this.containers.body.addResponse(e, {...this.activeConf});
       }); 
   }
@@ -732,7 +732,9 @@ class RQMan {
           this.containers.serverSetings.menu.focus();
           break;
         case PanelsType.BODY:
-          this.containers.body.bodyBox.focus();
+          if(this.containers.body.responseText) {
+            this.containers.body.responseText.focus()
+          }
           break;
         default: break;
       }

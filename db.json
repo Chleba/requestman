@@ -31,7 +31,7 @@
   "SERVERCONF": {
     "aaa": {
       "/hovno": {
-        "url": "asdasd",
+        "url": "localhost",
         "method": 0
       },
       "/ahoj": {
