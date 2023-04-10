@@ -1,24 +1,26 @@
 {
   "name": "rqman",
-  "version": "1.0.0",
+  "version": "0.1.0",
   "description": "Simple Postman-like in terminal",
-  "main": "dist/main.js",
+  "main": "main.js",
   "scripts": {
-    "start": "tsc && node dist/main.js",
+    "start": "node main.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Chleba<chlebik@gmail.com>",
-  "license": "ISC",
+  "author": "chleba<chlebik@gmail.com>",
+  "license": "MIT",
+  "keywords": ["terminal", "gui", "request", "api", "postman-line"],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Chleba/requestman"
+  },
   "dependencies": {
-    "@types/terminal-kit": "^2.5.1",
     "axios": "^1.3.5",
     "node-clipboardy": "^1.0.3",
     "reblessed": "^0.2.1",
-    "simple-json-db": "^2.0.0",
-    "terminal-kit": "^3.0.0"
+    "simple-json-db": "^2.0.0"
   },
-  "devDependencies": {
-    "@types/node": "^18.13.0",
-    "typescript": "^4.9.5"
+  "bin": {
+    "rqman": "./main.js"
   }
 }
