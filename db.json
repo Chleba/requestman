@@ -7,6 +7,10 @@
     "aaa": [
       "/",
       "/login"
+    ],
+    "asdasdasd": [
+      "/",
+      "/maslo"
     ]
   },
   "SERVERCONF": {
@@ -28,7 +32,7 @@
           "Accept-Encoding": "gzip, deflate, br",
           "Connection": "keep-alive"
         },
-        "body": "{ ahoj: true }sad"
+        "body": "{ ahoj: true }"
       },
       "/login": {
         "url": "https://seznam.cz",
@@ -39,6 +43,17 @@
           "Connection": "keep-alive"
         },
         "body": "hovnosracka=1"
+      }
+    },
+    "asdasdasd": {
+      "/": {
+        "url": "",
+        "method": 3,
+        "headers": {
+          "Accept": "*/*",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Connection": "keep-alive"
+        }
       }
     }
   }

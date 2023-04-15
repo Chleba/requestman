@@ -73,14 +73,14 @@ class RQMan {
       ...baseContainerOpt,
       left: '40%',
       width: '60%',
-      height: '40%'
+      height: '50%'
     });
     this.containers.body = new RQBodyBox(this, {
       ...baseContainerOpt,
-      top: '40%',
+      top: '50%',
       left: '40%',
       width: '60%',
-      height: '60%'
+      height: '50%'
     });
 
     for(const box of Object.values(this.containers)) {

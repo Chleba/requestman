@@ -1,6 +1,6 @@
 {
   "name": "rqman",
-  "version": "0.1.3",
+  "version": "0.2.0",
   "description": "Simple Postman-like in terminal",
   "main": "main.js",
   "scripts": {
@@ -15,7 +15,7 @@
     "gui",
     "request",
     "api",
-    "postman-line"
+    "postman-like"
   ],
   "repository": {
     "type": "git",
@@ -25,7 +25,6 @@
     "axios": "^1.3.5",
     "node-clipboardy": "^1.0.3",
     "reblessed": "^0.2.1",
-    "rqman": "^0.1.1",
     "simple-json-db": "^2.0.0"
   },
   "bin": {
