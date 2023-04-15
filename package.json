@@ -9,6 +9,7 @@
   },
   "author": "chleba<chlebik@gmail.com>",
   "license": "MIT",
+  "type": "module",
   "keywords": [
     "terminal",
     "gui",

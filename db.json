@@ -1,51 +1,26 @@
 {
   "API": [
-    "test",
-    "ahoj"
+    "aaa"
   ],
   "ENDPOINTS": {
-    "test": [
-      "/todos/1",
-      "/todos"
-    ],
-    "ahoj": [
-      "aaa",
-      "bbb",
-      "ccc"
+    "aaa": [
+      "/aaa",
+      "/"
     ]
   },
   "SERVERCONF": {
     "aaa": {
-      "/hovno": {
-        "url": "localhost",
-        "method": 0
-      },
-      "/ahoj": {
-        "url": "localhost",
-        "method": 0
+      "/aaa": {
+        "url": "www.seznam.cz",
+        "method": 0,
+        "headers": {
+          "Accept": "*/*",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Connection": "keep-alive"
+        }
       },
       "/": {
         "url": "https://seznam.cz",
-        "method": 0,
-        "headers": {
-          "Accept": "*/*",
-          "Accept-Encoding": "gzip, deflate, br",
-          "Connection": "keep-alive"
-        }
-      }
-    },
-    "test": {
-      "/todos/1": {
-        "url": "https://jsonplaceholder.typicode.com",
-        "method": 0,
-        "headers": {
-          "Accept": "*/*",
-          "Accept-Encoding": "gzip, deflate, br",
-          "Connection": "keep-alive"
-        }
-      },
-      "/todos": {
-        "url": "https://jsonplaceholder.typicode.com",
         "method": 0,
         "headers": {
           "Accept": "*/*",
