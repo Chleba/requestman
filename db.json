@@ -1,11 +1,12 @@
 {
   "API": [
-    "aaa"
+    "aaa",
+    "asdasdasd"
   ],
   "ENDPOINTS": {
     "aaa": [
-      "/aaa",
-      "/"
+      "/",
+      "/login"
     ]
   },
   "SERVERCONF": {
@@ -26,7 +27,18 @@
           "Accept": "*/*",
           "Accept-Encoding": "gzip, deflate, br",
           "Connection": "keep-alive"
-        }
+        },
+        "body": "{ ahoj: true }sad"
+      },
+      "/login": {
+        "url": "https://seznam.cz",
+        "method": 1,
+        "headers": {
+          "Accept": "*/*",
+          "Accept-Encoding": "gzip, deflate, br",
+          "Connection": "keep-alive"
+        },
+        "body": "hovnosracka=1"
       }
     }
   }

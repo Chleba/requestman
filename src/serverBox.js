@@ -40,48 +40,13 @@ class RQServerBox extends RQBaseList {
       style: { border: { fg: COLOR_GRAY2 } },
     });
   }
-  clearMenuContent() {
-    for(const child of this.menuContent.children) {
-      this.menuContent.remove(child);
-    }
+  makeContentBoxes() {
+    this.makeBase();
+    this.makeParams();
+    this.makeHeaders();
+    this.makeBody();
   }
-  setContentData() {
-    this.base.urlInput.setContent(this.dataList.url);
-    this.base.methodButton.setContent(RequestTypes[this.dataList.method] || '?');
-    // this.base.methodList.selectTab(this.dataList.method);
-    this.mainApp.setServerConf(this.dataList);
-    this.mainApp.render();
-  }
-  saveServerConf() {
-    const { activeAPI, activeEndpoint } = this.mainApp;
-    const data = this.mainApp.getDBItem(this.DBKey);
-    let newData = {}
-    if(data) {
-      newData = {...data};
-      if(activeAPI in newData) {
-        newData[activeAPI][activeEndpoint] = {...this.dataList};
-      } else {
-        newData[activeAPI] = {}
-        newData[activeAPI][activeEndpoint] = {...this.dataList};
-      }
-    } else {
-      newData[activeAPI] = {}
-      newData[activeAPI][activeEndpoint] = {...this.dataList};
-    }
-    this.mainApp.setDBItem(this.DBKey, JSON.parse(JSON.stringify(newData)));
-    this.setContentData();
-  }
-  selectMethod(index, _value) {
-    this.dataList.method = index;
-    this.saveServerConf();
-    this.base.methodList.toggle();
-  }
-  setURL(value) {
-    this.dataList.url = value;
-    this.saveServerConf();
-  }
-  showBase() {
-    this.clearMenuContent();
+  makeBase() {
     if(!this.base) {
       const rItems = {};
       RequestTypes.map((r, i) => {
@@ -153,23 +118,106 @@ class RQServerBox extends RQBaseList {
         this.mainApp.render();
       });
       this.base.urlInput.on('submit', (value) => this.setURL(value));
+
+      this.menuContent.append(this.base.box);
     }
-    this.menuContent.append(this.base.box);
+  }
+  makeParams() {
+
+  }
+  makeHeaders() {
+
+  }
+  makeBody() {
+    if(!this.body) {
+      this.body = {
+        box: this.makeMenuBox('BODY'),
+        textarea: blessed.Textarea({
+          keys: true,
+          vi: true,
+          value: this.dataList.body,
+          style: { fg: '#fff', bg: '#222', focus: { bg: COLOR_BLACK, fg: COLOR_TEXT } }
+        }),
+      };
+      for(let i in this.body) {
+        if(i !== 'box') { this.body.box.append(this.body[i]); }
+      }
+      this.body.textarea.on('action', () => {
+        this.setBody(this.body.textarea.getValue());
+      });
+
+      this.menuContent.append(this.body.box);
+    }
+  }
+  clearMenuContent() {
+    for(const child of this.menuContent.children) {
+      child.hide();
+      // this.menuContent.remove(child);
+    }
+  }
+  setContentData() {
+    if(this.base) {
+      this.base.urlInput.setContent(this.dataList.url);
+      this.base.methodButton.setContent(RequestTypes[this.dataList.method] || '?');
+    }
+    if(this.body) {
+      this.body.textarea.clearValue();
+      this.body.textarea.setValue(this.dataList.body);
+    }
+    this.mainApp.setServerConf(this.dataList);
+    this.mainApp.render();
+  }
+  saveServerConf() {
+    const { activeAPI, activeEndpoint } = this.mainApp;
+    const data = this.mainApp.getDBItem(this.DBKey);
+    let newData = {}
+    if(data) {
+      newData = {...data};
+      if(activeAPI in newData) {
+        newData[activeAPI][activeEndpoint] = {...this.dataList};
+      } else {
+        newData[activeAPI] = {}
+        newData[activeAPI][activeEndpoint] = {...this.dataList};
+      }
+    } else {
+      newData[activeAPI] = {}
+      newData[activeAPI][activeEndpoint] = {...this.dataList};
+    }
+    this.mainApp.setDBItem(this.DBKey, JSON.parse(JSON.stringify(newData)));
+    this.setContentData();
+  }
+  selectMethod(index, _value) {
+    this.dataList.method = index;
+    this.saveServerConf();
+    this.base.methodList.toggle();
+  }
+  setURL(value) {
+    this.dataList.url = value;
+    this.saveServerConf();
+  }
+  setBody(value) {
+    this.dataList.body = value;
+    this.saveServerConf();
+  }
+  showBase() {
+    this.clearMenuContent();
+    this.base.box.show();
+    this.mainApp.render();
   }
   showParams() {
-    this.menuContent.children = [];
-    const b = this.makeMenuBox('PARAMS');
-    this.menuContent.append(b);
+    // this.menuContent.children = [];
+    // const b = this.makeMenuBox('PARAMS');
+    // this.menuContent.append(b);
   }
   showHeaders() {
-    this.menuContent.children = [];
-    const b = this.makeMenuBox('HEADERS');
-    this.menuContent.append(b);
+    // this.menuContent.children = [];
+    // const b = this.makeMenuBox('HEADERS');
+    // this.menuContent.append(b);
   }
   showBody() {
-    this.menuContent.children = [];
-    const b = this.makeMenuBox('BODY');
-    this.menuContent.append(b);
+    this.clearMenuContent();
+    this.body.box.show();
+    this.mainApp.render();
   }
   createBoxContent() {
     const infoText = blessed.Text({ 
@@ -207,6 +255,8 @@ class RQServerBox extends RQBaseList {
     this.box.append(this.menu);
     this.menuContent = blessed.Box({ top: 1 });
     this.box.append(this.menuContent);
+    // -- create boxes
+    this.makeContentBoxes();
     // -- first select
     this.menu.on('focus', () => this.redirectFocus());
     mItems.BASE();
