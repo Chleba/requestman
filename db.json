@@ -1,16 +1,11 @@
 {
   "API": [
-    "aaa",
-    "asdasdasd"
+    "aaa"
   ],
   "ENDPOINTS": {
     "aaa": [
       "/",
       "/login"
-    ],
-    "asdasdasd": [
-      "/",
-      "/maslo"
     ]
   },
   "SERVERCONF": {
@@ -25,7 +20,7 @@
         }
       },
       "/": {
-        "url": "https://seznam.cz",
+        "url": "",
         "method": 0,
         "headers": {
           "Accept": "*/*",

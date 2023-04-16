@@ -46,7 +46,7 @@ class RQMan {
   }
   setActiveEndpoint(endpoint){
     this.activeEndpoint = endpoint;
-    this.containers.serverSetings.setActiveEndpoint(this.activeAPI, this.activeEndpoint);
+    this.containers.serverSettings.setActiveEndpoint(this.activeAPI, this.activeEndpoint);
   }
   setServerConf(conf) {
     this.activeConf = conf;
@@ -69,7 +69,7 @@ class RQMan {
       ...baseContainerOpt,
       top: '50%'
     });
-    this.containers.serverSetings = new RQServerBox(this, {
+    this.containers.serverSettings = new RQServerBox(this, {
       ...baseContainerOpt,
       left: '40%',
       width: '60%',
@@ -88,7 +88,7 @@ class RQMan {
     }
     // -- first focus
     this.containers.apis.button.focus();
-    // this.containers.serverSetings.menu.focus();
+    // this.containers.serverSettings.menu.focus();
   }
   makeFooter() {
     const footerAuthor = blessed.Text({
@@ -149,7 +149,7 @@ class RQMan {
           this.containers.endpoints.button.focus();
           break;
         case PanelsType.SERVER:
-          this.containers.serverSetings.menu.focus();
+          this.containers.serverSettings.menu.focus();
           break;
         case PanelsType.BODY:
           if(this.containers.body.responseText) {

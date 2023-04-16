@@ -6,6 +6,7 @@ import {
   COLOR_TEXT,
   PanelsType,
   RequestTypes,
+  defaultListStyle,
   defaultListbarStyle,
   defaultHeaders,
 } from "./conf.js";
@@ -123,7 +124,72 @@ class RQServerBox extends RQBaseList {
     }
   }
   makeParams() {
-
+    if(!this.params) {
+      this.params = {
+        box: this.makeMenuBox('PARAMS'),
+        queryKeyLabel: blessed.Text({
+          content: 'Key:',
+          style: { fg: COLOR_TEXT }
+        }),
+        queryKey: blessed.Textbox({
+          left: 7,
+          height: 1,
+          keys: true,
+          vi: true,
+          style: { fg: '#fff', bg: '#222', focus: { bg: COLOR_BLACK, fg: COLOR_TEXT } },
+        }),
+        queryNameLabel: blessed.Text({
+          top: 1,
+          content: 'Value:',
+          style: { fg: COLOR_TEXT }
+        }),
+        queryName: blessed.Textbox({
+          top: 1,
+          left: 7,
+          height: 1,
+          keys: true,
+          vi: true,
+          style: { fg: '#fff', bg: '#222', focus: { bg: COLOR_BLACK, fg: COLOR_TEXT } },
+        }),
+        list: blessed.List({
+          border: 'line',
+          style: JSON.parse(JSON.stringify(defaultListStyle)),
+          invertSelected: true,
+        }),
+        // listTable: blessed.ListTable({
+        //   top: 1,
+        //   border: { type: 'line'},
+        //   keys: true,
+        //   vi: true,
+        //   // pad: 0,
+        //   // data: this.dataList.params,
+        //   data: [
+        //     ['a', 'b', 'c'],
+        //     ['1', '2', '3'],
+        //     ['3', '2', '3'],
+        //     ['1', '1', '1'],
+        //   ],
+        //   noCellBorders: false,
+        //   style: {
+        //     fg: COLOR_TEXT,
+        //     focus: { border: { fg: COLOR_TEXT } },
+        //     border: { fg: COLOR_GRAY2 },
+        //     header: { fg: 'blue', bold: true, },
+        //     cell: { 
+        //       fg: COLOR_TEXT, 
+        //       selected: {
+        //         bg: COLOR_TEXT,
+        //         fg: COLOR_GRAY1,
+        //       },
+        //     }
+        //   },
+        // }),
+      };
+      for(let i in this.params) {
+        if(i !== 'box') { this.params.box.append(this.params[i]); }
+      }
+      this.menuContent.append(this.params.box);
+    }
   }
   makeHeaders() {
 
@@ -157,7 +223,7 @@ class RQServerBox extends RQBaseList {
   }
   setContentData() {
     if(this.base) {
-      this.base.urlInput.setContent(this.dataList.url);
+      this.base.urlInput.setValue(this.dataList.url);
       this.base.methodButton.setContent(RequestTypes[this.dataList.method] || '?');
     }
     if(this.body) {
@@ -205,9 +271,9 @@ class RQServerBox extends RQBaseList {
     this.mainApp.render();
   }
   showParams() {
-    // this.menuContent.children = [];
-    // const b = this.makeMenuBox('PARAMS');
-    // this.menuContent.append(b);
+    this.clearMenuContent();
+    this.params.box.show();
+    this.mainApp.render();
   }
   showHeaders() {
     // this.menuContent.children = [];
