@@ -1,5 +1,6 @@
 #!/usr/bin/env node
 
+import { homedir } from 'os'
 import clipboard from "node-clipboardy";
 import axios from "axios";
 import blessed from "reblessed";
@@ -28,7 +29,8 @@ class RQMan {
       vi: true,
       // debug: true,
     });
-    this.db = new JSONdb('./db.json', { jsonSpaces: 2 });
+    const dbPath = process.platform !== 'win32' ? `${homedir()}/.rqmandb.json` : 'C:/\/\/.rqmandb.json'; 
+    this.db = new JSONdb(dbPath, { jsonSpaces: 2 });
     this.activeAPI = null;
     this.activeEndpoint = null;
     this.activeConf = null;
@@ -44,7 +46,7 @@ class RQMan {
     this.containers.endpoints.setActiveAPI(api);
     this.containers.endpoints.button.focus();
   }
-  setActiveEndpoint(endpoint){
+  setActiveEndpoint(endpoint) {
     this.activeEndpoint = endpoint;
     this.containers.serverSettings.setActiveEndpoint(this.activeAPI, this.activeEndpoint);
   }

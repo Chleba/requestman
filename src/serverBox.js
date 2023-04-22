@@ -153,6 +153,7 @@ class RQServerBox extends RQBaseList {
         }),
         list: blessed.List({
           border: 'line',
+          top: 2,
           style: JSON.parse(JSON.stringify(defaultListStyle)),
           invertSelected: true,
         }),
