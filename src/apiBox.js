@@ -12,11 +12,14 @@ class RQApiBox extends RQBaseList {
   deleteDone(index) {
     const api = this.dataList[index];
 
-    const serverConfDBKey = this.mainApp.containers.serverSettings;
+    const serverConfDBKey = this.mainApp.containers.serverSettings.DBKey;
     const serverConf = this.mainApp.getDBItem(serverConfDBKey);
     if(serverConf) {
       const newServerConf = JSON.parse(JSON.stringify(serverConf));
-
+      if(api in newServerConf) {
+        delete newServerConf[api];
+        this.mainApp.setDBItem(serverConfDBKey, newServerConf);
+      }
     }
 
     const endpointDBKey = this.mainApp.containers.endpoints.DBKey
@@ -28,6 +31,7 @@ class RQApiBox extends RQBaseList {
         this.mainApp.setDBItem(endpointDBKey, newEndpoints);
       }
     }
+
     super.deleteDone(index);
   }
   refreshList() {

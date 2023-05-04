@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
-import { homedir } from 'os'
+import { homedir } from 'os';
+import https from 'https';
 import clipboard from "node-clipboardy";
 import axios from "axios";
 import blessed from "reblessed";
@@ -117,6 +118,9 @@ class RQMan {
     this.containers.body.setResponseState('Loading..');
     const { method, url, headers } = this.activeConf;
     axios({
+      // -- unsecure ssl
+      httpsAgent: new https.Agent({ rejectUnauthorized: false }),
+      // -- rest of the request from App
       method: RequestTypes[method],
       baseURL: `${url}`,
       url: `${this.activeEndpoint}`,

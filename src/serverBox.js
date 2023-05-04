@@ -62,7 +62,7 @@ class RQServerBox extends RQBaseList {
         }),
         urlInput: blessed.Textbox({ 
           top: 0, 
-          left: 7,
+          left: 8,
           height: 1,
           style: { fg: '#fff', bg: '#222', focus: { bg: COLOR_BLACK, fg: COLOR_TEXT } },
           keys: true,
@@ -77,7 +77,7 @@ class RQServerBox extends RQBaseList {
         }),
         methodButton: blessed.Button({
           top: 1,
-          left: 7,
+          left: 8,
           width: 10,
           height: 1,
           // content: 'GET',
@@ -138,12 +138,12 @@ class RQServerBox extends RQBaseList {
           vi: true,
           style: { fg: '#fff', bg: '#222', focus: { bg: COLOR_BLACK, fg: COLOR_TEXT } },
         }),
-        queryNameLabel: blessed.Text({
+        queryValueLabel: blessed.Text({
           top: 1,
           content: 'Value:',
           style: { fg: COLOR_TEXT }
         }),
-        queryName: blessed.Textbox({
+        queryValue: blessed.Textbox({
           top: 1,
           left: 7,
           height: 1,
@@ -152,44 +152,34 @@ class RQServerBox extends RQBaseList {
           style: { fg: '#fff', bg: '#222', focus: { bg: COLOR_BLACK, fg: COLOR_TEXT } },
         }),
         list: blessed.List({
+          keys: true,
+          vi: true,
           border: 'line',
           top: 2,
           style: JSON.parse(JSON.stringify(defaultListStyle)),
           invertSelected: true,
         }),
-        // listTable: blessed.ListTable({
-        //   top: 1,
-        //   border: { type: 'line'},
-        //   keys: true,
-        //   vi: true,
-        //   // pad: 0,
-        //   // data: this.dataList.params,
-        //   data: [
-        //     ['a', 'b', 'c'],
-        //     ['1', '2', '3'],
-        //     ['3', '2', '3'],
-        //     ['1', '1', '1'],
-        //   ],
-        //   noCellBorders: false,
-        //   style: {
-        //     fg: COLOR_TEXT,
-        //     focus: { border: { fg: COLOR_TEXT } },
-        //     border: { fg: COLOR_GRAY2 },
-        //     header: { fg: 'blue', bold: true, },
-        //     cell: { 
-        //       fg: COLOR_TEXT, 
-        //       selected: {
-        //         bg: COLOR_TEXT,
-        //         fg: COLOR_GRAY1,
-        //       },
-        //     }
-        //   },
-        // }),
       };
       for(let i in this.params) {
         if(i !== 'box') { this.params.box.append(this.params[i]); }
       }
       this.menuContent.append(this.params.box);
+      this.params.queryKey.on('submit', () => {
+        this.params.queryValue.focus();
+      });
+      this.params.queryValue.on('focus', () => {
+        if(this.params.queryKey.getValue() === ''){
+          this.mainApp.screen.focusPrevious();
+        }
+      });
+      this.params.queryValue.on('submit', () => {
+        if(this.params.queryKey.getValue() !== '') {
+          this.setParam(this.params.queryKey.getValue(), this.params.queryValue.getValue());
+        }
+      });
+      this.params.list.on('select', (a, b, c) => {
+        console.log(a, b, c);
+      })
     }
   }
   makeHeaders() {
@@ -212,7 +202,6 @@ class RQServerBox extends RQBaseList {
       this.body.textarea.on('action', () => {
         this.setBody(this.body.textarea.getValue());
       });
-
       this.menuContent.append(this.body.box);
     }
   }
@@ -231,6 +220,16 @@ class RQServerBox extends RQBaseList {
       this.body.textarea.clearValue();
       this.body.textarea.setValue(this.dataList.body);
     }
+    if(this.params) {
+      this.params.list.clearItems();
+      const listItems = [];
+      if(this.dataList.params) {
+        for(const [key, val] of Object.entries(this.dataList.params)) {
+          listItems.push(`${key}: ${val}`);
+        }
+      }
+      this.params.list.setItems(listItems);
+    }
     this.mainApp.setServerConf(this.dataList);
     this.mainApp.render();
   }
@@ -238,7 +237,7 @@ class RQServerBox extends RQBaseList {
     const { activeAPI, activeEndpoint } = this.mainApp;
     const data = this.mainApp.getDBItem(this.DBKey);
     let newData = {}
-    if(data) {
+    if (data) {
       newData = {...data};
       if(activeAPI in newData) {
         newData[activeAPI][activeEndpoint] = {...this.dataList};
@@ -260,6 +259,13 @@ class RQServerBox extends RQBaseList {
   }
   setURL(value) {
     this.dataList.url = value;
+    this.saveServerConf();
+  }
+  setParam(key, value) {
+    if (!this.dataList.params) {
+      this.dataList.params = {};
+    }
+    this.dataList.params[key] = value;
     this.saveServerConf();
   }
   setBody(value) {
